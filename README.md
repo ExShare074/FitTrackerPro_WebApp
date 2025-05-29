@@ -1,2 +1,1 @@
-# FitTrackerPro_WebApp
-
+# FitTrackerPro WebApp (FastAPI backend)
