@@ -8,7 +8,7 @@ function App() {
     WebApp.ready()      // Telegram сообщает, что WebApp готов
     WebApp.expand()     // Разворачиваем окно WebApp на весь экран
 
-    fetch('http://127.0.0.1:8000/api/ping')
+    fetch('http://fittrackerpro.pythonanywhere.com/api/ping')
       .then((res) => res.json())
       .then((data) => setMessage(data.message))
       .catch(() => setMessage('Ошибка при запросе'))
