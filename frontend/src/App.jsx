@@ -9,6 +9,8 @@ function App() {
   const [weekStats, setWeekStats] = useState([])
   const [weekOffset, setWeekOffset] = useState(0)
   const [feedback, setFeedback] = useState('')
+  const [weight, setWeight] = useState('')
+  const [weightHistory, setWeightHistory] = useState([])
   const username = WebApp.initDataUnsafe.user?.username || "testuser"
 
   useEffect(() => {
@@ -84,6 +86,23 @@ function App() {
     setFeedback('')
   }
 
+  const submitWeight = async () => {
+    if (!weight.trim()) return
+    await fetch('https://fittrackerpro-backend.onrender.com/api/weight', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, kg: parseFloat(weight) })
+    })
+    setWeight('')
+    loadWeightHistory()
+  }
+
+  const loadWeightHistory = async () => {
+    const res = await fetch(`https://fittrackerpro-backend.onrender.com/api/weight?username=${username}`)
+    const data = await res.json()
+    setWeightHistory(data)
+  }
+
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <h1>FitTracker WebApp</h1>
@@ -92,7 +111,7 @@ function App() {
       <button onClick={startCycle}>▶️ Запустить тренировочный цикл</button>
       <button onClick={getWorkout}>🏋️‍♂️ Показать тренировку</button>
       <button onClick={addFood}>🍽 Добавить гречку</button>
-      <button onClick={() => loadGraph(weekOffset)}>📊 Показать график</button>
+      <button onClick={() => loadGraph(weekOffset)}>📊 Показать график калорий</button>
 
       {workout.length > 0 && (
         <div>
@@ -125,6 +144,24 @@ function App() {
           </ResponsiveContainer>
         </div>
       )}
+
+      <div style={{ marginTop: '2rem' }}>
+        <h3>График веса</h3>
+        <input type="number" value={weight} onChange={e => setWeight(e.target.value)} placeholder="Ваш вес (кг)" />
+        <button onClick={submitWeight}>➕ Добавить вес</button>
+        {weightHistory.length > 0 && (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={weightHistory}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="kg" stroke="#ff1493" name="Вес (кг)" />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+      </div>
 
       <div style={{ marginTop: '2rem' }}>
         <h3>Обратная связь</h3>
