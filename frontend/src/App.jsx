@@ -8,6 +8,8 @@ const App = () => {
   const [message, setMessage] = useState("");
   const [training, setTraining] = useState(null);
   const [duration, setDuration] = useState(8);
+  const [weekIndex, setWeekIndex] = useState(0);
+  const [cycle, setCycle] = useState([]);
   const [weights, setWeights] = useState({
     "Приседания со штангой": 60,
     "Жим ногами": 80,
@@ -31,19 +33,27 @@ const App = () => {
       });
       const data = await res.json();
       setMessage("Тренировочный цикл запущен");
+      setCycle(data.weeks);
+      setWeekIndex(0);
       setTraining(data.weeks?.[0]?.days?.[0]);
     } catch (err) {
       setMessage("Ошибка запуска цикла");
     }
   };
 
-  const handleGetCurrentTraining = async () => {
-    try {
-      const res = await fetch(`${API_URL}/current_training?username=${username}`);
-      const data = await res.json();
-      setTraining(data);
-    } catch (err) {
-      setMessage("Ошибка загрузки тренировки");
+  const handleNextWeek = () => {
+    if (weekIndex < cycle.length - 1) {
+      const nextIndex = weekIndex + 1;
+      setWeekIndex(nextIndex);
+      setTraining(cycle[nextIndex].days[0]);
+    }
+  };
+
+  const handlePrevWeek = () => {
+    if (weekIndex > 0) {
+      const prevIndex = weekIndex - 1;
+      setWeekIndex(prevIndex);
+      setTraining(cycle[prevIndex].days[0]);
     }
   };
 
@@ -85,18 +95,27 @@ const App = () => {
         Запустить тренировочный цикл
       </button>
 
-      <button
-        className="bg-green-600 px-4 py-2 rounded text-white mt-2 ml-2"
-        onClick={handleGetCurrentTraining}
-      >
-        Показать тренировку
-      </button>
-
       {message && <p className="mt-4 text-yellow-400">{message}</p>}
 
       {training && (
         <div className="mt-4 bg-gray-800 p-4 rounded">
-          <h2 className="text-xl font-semibold mb-2">Текущая тренировка</h2>
+          <div className="flex justify-between items-center mb-2">
+            <button
+              className="bg-gray-700 px-2 py-1 rounded"
+              onClick={handlePrevWeek}
+              disabled={weekIndex === 0}
+            >
+              ◀ Неделя {weekIndex}
+            </button>
+            <span className="text-lg font-semibold">Неделя {weekIndex + 1}</span>
+            <button
+              className="bg-gray-700 px-2 py-1 rounded"
+              onClick={handleNextWeek}
+              disabled={weekIndex >= cycle.length - 1}
+            >
+              Неделя {weekIndex + 2} ▶
+            </button>
+          </div>
           <ul>
             {Object.entries(training.exercises).map(([name, weight]) => (
               <li key={name}>{name}: {weight} кг</li>
