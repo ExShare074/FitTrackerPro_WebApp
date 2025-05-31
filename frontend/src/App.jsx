@@ -8,6 +8,7 @@ function App() {
   const [totalKcal, setTotalKcal] = useState(0)
   const [weekStats, setWeekStats] = useState([])
   const [weekOffset, setWeekOffset] = useState(0)
+  const [feedback, setFeedback] = useState('')
   const username = WebApp.initDataUnsafe.user?.username || "testuser"
 
   useEffect(() => {
@@ -72,6 +73,17 @@ function App() {
     loadGraph(newOffset)
   }
 
+  const submitFeedback = async () => {
+    if (!feedback.trim()) return
+    await fetch('https://fittrackerpro-backend.onrender.com/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, message: feedback })
+    })
+    WebApp.showAlert('Спасибо за обратную связь!')
+    setFeedback('')
+  }
+
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <h1>FitTracker WebApp</h1>
@@ -113,6 +125,12 @@ function App() {
           </ResponsiveContainer>
         </div>
       )}
+
+      <div style={{ marginTop: '2rem' }}>
+        <h3>Обратная связь</h3>
+        <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} rows={3} style={{ width: '100%' }} placeholder="Ваши предложения, пожелания..." />
+        <button onClick={submitFeedback}>📩 Отправить</button>
+      </div>
     </div>
   )
 }
