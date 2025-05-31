@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import WebApp from '@twa-dev/sdk'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 function App() {
   const [message, setMessage] = useState('')
   const [workout, setWorkout] = useState([])
   const [totalKcal, setTotalKcal] = useState(0)
+  const [weekStats, setWeekStats] = useState([])
   const username = WebApp.initDataUnsafe.user?.username || "testuser"
 
   useEffect(() => {
@@ -50,6 +52,12 @@ function App() {
     setTotalKcal(data.total.kcal)
   }
 
+  const loadGraph = async () => {
+    const res = await fetch(`https://fittrackerpro-backend.onrender.com/api/calories/week?username=${username}`)
+    const data = await res.json()
+    setWeekStats(data)
+  }
+
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <h1>FitTracker WebApp</h1>
@@ -58,6 +66,7 @@ function App() {
       <button onClick={startCycle}>▶️ Запустить тренировочный цикл</button>
       <button onClick={getWorkout}>🏋️‍♂️ Показать тренировку</button>
       <button onClick={addFood}>🍽 Добавить гречку</button>
+      <button onClick={loadGraph}>📊 Показать график</button>
 
       {workout.length > 0 && (
         <div>
@@ -67,6 +76,25 @@ function App() {
       )}
 
       {totalKcal > 0 && <p>Съедено сегодня: <strong>{totalKcal}</strong> ккал</p>}
+
+      {weekStats.length > 0 && (
+        <div>
+          <h3>График калорий за неделю</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={weekStats}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="kcal" stroke="#8884d8" name="Калории" />
+              <Line type="monotone" dataKey="protein" stroke="#82ca9d" name="Белки" />
+              <Line type="monotone" dataKey="fat" stroke="#ffc658" name="Жиры" />
+              <Line type="monotone" dataKey="carbs" stroke="#ff7300" name="Углеводы" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   )
 }
