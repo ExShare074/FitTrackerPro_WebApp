@@ -7,6 +7,7 @@ function App() {
   const [workout, setWorkout] = useState([])
   const [totalKcal, setTotalKcal] = useState(0)
   const [weekStats, setWeekStats] = useState([])
+  const [weekOffset, setWeekOffset] = useState(0)
   const username = WebApp.initDataUnsafe.user?.username || "testuser"
 
   useEffect(() => {
@@ -52,10 +53,23 @@ function App() {
     setTotalKcal(data.total.kcal)
   }
 
-  const loadGraph = async () => {
-    const res = await fetch(`https://fittrackerpro-backend.onrender.com/api/calories/week?username=${username}`)
+  const loadGraph = async (offset = 0) => {
+    const res = await fetch(`https://fittrackerpro-backend.onrender.com/api/calories/week?username=${username}&offset=${offset}`)
     const data = await res.json()
     setWeekStats(data)
+  }
+
+  const handlePrevWeek = () => {
+    const newOffset = weekOffset + 1
+    setWeekOffset(newOffset)
+    loadGraph(newOffset)
+  }
+
+  const handleNextWeek = () => {
+    if (weekOffset === 0) return
+    const newOffset = weekOffset - 1
+    setWeekOffset(newOffset)
+    loadGraph(newOffset)
   }
 
   return (
@@ -66,7 +80,7 @@ function App() {
       <button onClick={startCycle}>▶️ Запустить тренировочный цикл</button>
       <button onClick={getWorkout}>🏋️‍♂️ Показать тренировку</button>
       <button onClick={addFood}>🍽 Добавить гречку</button>
-      <button onClick={loadGraph}>📊 Показать график</button>
+      <button onClick={() => loadGraph(weekOffset)}>📊 Показать график</button>
 
       {workout.length > 0 && (
         <div>
@@ -79,7 +93,11 @@ function App() {
 
       {weekStats.length > 0 && (
         <div>
-          <h3>График калорий за неделю</h3>
+          <h3>График калорий — неделя -{weekOffset}</h3>
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem' }}>
+            <button onClick={handlePrevWeek}>⏪</button>
+            <button onClick={handleNextWeek} disabled={weekOffset === 0}>⏩</button>
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={weekStats}>
               <CartesianGrid strokeDasharray="3 3" />
