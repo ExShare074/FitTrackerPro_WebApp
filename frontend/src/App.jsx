@@ -11,6 +11,10 @@ const App = () => {
   const [weekIndex, setWeekIndex] = useState(0);
   const [dayIndex, setDayIndex] = useState(0);
   const [cycle, setCycle] = useState([]);
+  const [completed, setCompleted] = useState(() => {
+    const stored = localStorage.getItem("completedWorkouts");
+    return stored ? JSON.parse(stored) : {};
+  });
   const [weights, setWeights] = useState({
     "Приседания со штангой": 60,
     "Жим ногами": 80,
@@ -45,6 +49,8 @@ const App = () => {
       setCycle(data.weeks);
       setWeekIndex(0);
       setTraining(data.weeks?.[0]?.days?.[dayIndex]);
+      setCompleted({});
+      localStorage.removeItem("completedWorkouts");
     } catch (err) {
       setMessage("Ошибка запуска цикла");
     }
@@ -76,6 +82,11 @@ const App = () => {
   };
 
   const handleCompleteWorkout = () => {
+    const key = `${weekIndex}-${dayIndex}`;
+    const updated = { ...completed, [key]: true };
+    setCompleted(updated);
+    localStorage.setItem("completedWorkouts", JSON.stringify(updated));
+
     if (dayIndex < 2) {
       const nextDay = dayIndex + 1;
       setDayIndex(nextDay);
@@ -151,17 +162,25 @@ const App = () => {
           </div>
 
           <div className="flex justify-center gap-2 mb-2">
-            {["Пн", "Ср", "Пт"].map((label, idx) => (
-              <button
-                key={label}
-                className={`px-3 py-1 rounded ${
-                  dayIndex === idx ? "bg-blue-500" : "bg-gray-600"
-                }`}
-                onClick={() => handleDayChange(idx)}
-              >
-                {label}
-              </button>
-            ))}
+            {["Пн", "Ср", "Пт"].map((label, idx) => {
+              const key = `${weekIndex}-${idx}`;
+              const isDone = completed[key];
+              return (
+                <button
+                  key={label}
+                  className={`px-3 py-1 rounded ${
+                    dayIndex === idx
+                      ? "bg-blue-500"
+                      : isDone
+                      ? "bg-green-600"
+                      : "bg-gray-600"
+                  }`}
+                  onClick={() => handleDayChange(idx)}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
           <ul className="mb-2">
