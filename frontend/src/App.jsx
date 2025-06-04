@@ -27,9 +27,9 @@ const App = () => {
 
   useEffect(() => {
     const today = new Date().getDay();
-    if (today === 1) setDayIndex(0); // Monday
-    else if (today === 3) setDayIndex(1); // Wednesday
-    else if (today === 5) setDayIndex(2); // Friday
+    if (today === 1) setDayIndex(0);
+    else if (today === 3) setDayIndex(1);
+    else if (today === 5) setDayIndex(2);
     else setDayIndex(0);
   }, []);
 
@@ -73,6 +73,21 @@ const App = () => {
   const handleDayChange = (index) => {
     setDayIndex(index);
     updateTraining(weekIndex, index);
+  };
+
+  const handleCompleteWorkout = () => {
+    if (dayIndex < 2) {
+      const nextDay = dayIndex + 1;
+      setDayIndex(nextDay);
+      updateTraining(weekIndex, nextDay);
+    } else if (weekIndex < cycle.length - 1) {
+      const nextWeek = weekIndex + 1;
+      setWeekIndex(nextWeek);
+      setDayIndex(0);
+      updateTraining(nextWeek, 0);
+    } else {
+      setMessage("Цикл завершён! Отличная работа!");
+    }
   };
 
   return (
@@ -149,11 +164,18 @@ const App = () => {
             ))}
           </div>
 
-          <ul>
+          <ul className="mb-2">
             {Object.entries(training.exercises).map(([name, weight]) => (
               <li key={name}>{name}: {weight} кг</li>
             ))}
           </ul>
+
+          <button
+            className="bg-green-600 px-4 py-2 rounded mt-2"
+            onClick={handleCompleteWorkout}
+          >
+            Завершить тренировку
+          </button>
         </div>
       )}
     </div>
