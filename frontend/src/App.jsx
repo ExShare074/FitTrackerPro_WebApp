@@ -9,6 +9,7 @@ const App = () => {
   const [training, setTraining] = useState(null);
   const [duration, setDuration] = useState(8);
   const [weekIndex, setWeekIndex] = useState(0);
+  const [dayIndex, setDayIndex] = useState(0);
   const [cycle, setCycle] = useState([]);
   const [weights, setWeights] = useState({
     "Приседания со штангой": 60,
@@ -24,6 +25,14 @@ const App = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const today = new Date().getDay();
+    if (today === 1) setDayIndex(0); // Monday
+    else if (today === 3) setDayIndex(1); // Wednesday
+    else if (today === 5) setDayIndex(2); // Friday
+    else setDayIndex(0);
+  }, []);
+
   const handleStartCycle = async () => {
     try {
       const res = await fetch(`${API_URL}/start_cycle`, {
@@ -35,26 +44,35 @@ const App = () => {
       setMessage("Тренировочный цикл запущен");
       setCycle(data.weeks);
       setWeekIndex(0);
-      setTraining(data.weeks?.[0]?.days?.[0]);
+      setTraining(data.weeks?.[0]?.days?.[dayIndex]);
     } catch (err) {
       setMessage("Ошибка запуска цикла");
     }
   };
 
+  const updateTraining = (week, day) => {
+    setTraining(cycle[week]?.days[day]);
+  };
+
   const handleNextWeek = () => {
     if (weekIndex < cycle.length - 1) {
-      const nextIndex = weekIndex + 1;
-      setWeekIndex(nextIndex);
-      setTraining(cycle[nextIndex].days[0]);
+      const next = weekIndex + 1;
+      setWeekIndex(next);
+      updateTraining(next, dayIndex);
     }
   };
 
   const handlePrevWeek = () => {
     if (weekIndex > 0) {
-      const prevIndex = weekIndex - 1;
-      setWeekIndex(prevIndex);
-      setTraining(cycle[prevIndex].days[0]);
+      const prev = weekIndex - 1;
+      setWeekIndex(prev);
+      updateTraining(prev, dayIndex);
     }
+  };
+
+  const handleDayChange = (index) => {
+    setDayIndex(index);
+    updateTraining(weekIndex, index);
   };
 
   return (
@@ -116,6 +134,21 @@ const App = () => {
               Неделя {weekIndex + 2} ▶
             </button>
           </div>
+
+          <div className="flex justify-center gap-2 mb-2">
+            {["Пн", "Ср", "Пт"].map((label, idx) => (
+              <button
+                key={label}
+                className={`px-3 py-1 rounded ${
+                  dayIndex === idx ? "bg-blue-500" : "bg-gray-600"
+                }`}
+                onClick={() => handleDayChange(idx)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           <ul>
             {Object.entries(training.exercises).map(([name, weight]) => (
               <li key={name}>{name}: {weight} кг</li>
